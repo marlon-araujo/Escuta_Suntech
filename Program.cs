@@ -161,102 +161,66 @@ namespace Monitoramento
                 if (mensagem[0].Contains("STT")) //mensagem proveniente de um STATUS mensagem
                 {
                     #region Mensagem de Status
-                    id = mensagem[1];
-
-                    var m = new Mensagens();
-                    var r = new Rastreador();
-                    r.PorId(id);
-
-                    m.Data_Gps = mensagem[4].Substring(0, 4) + "-" + mensagem[4].Substring(4, 2) + "-" + mensagem[4].Substring(6, 2) + " " + mensagem[5];
-                    m.Data_Recebida = DateTime.Now.ToString();
-                    m.ID_Rastreador = id;
-                    m.Mensagem = string.Join(";", mensagem);
-                    m.Ras_codigo = r.Codigo;
-                    m.Tipo_Mensagem = "STT";
-                    m.Latitude = mensagem[7];
-                    m.Longitude = mensagem[8];
-                    m.Tipo_Alerta = "";
-                    m.Velocidade = Convert.ToDecimal(mensagem[9].Replace('.', ',')).ToString("#0", CultureInfo.InvariantCulture).Replace('.', ',');
-                    m.Vei_codigo = r.Vei_codigo != 0 ? r.Vei_codigo : 0;
-                    m.Ignicao = mensagem[15].Count() == 6 ? mensagem[15][0].Equals('0') ? false : true : mensagem[15][8].Equals('0') ? false : true;
-                    m.Hodometro = (Convert.ToInt32(mensagem[13]) / 1000.0).ToString("#0.0", CultureInfo.InvariantCulture).Replace(',', '.');
-                    m.Bloqueio = mensagem[15][4] == '1' ? true : false;
-                    m.Sirene = mensagem[15][5] == '1' ? true : false;
-                    m.Tensao = mensagem[14];
-                    m.Horimetro = 0;
-                    m.CodAlerta = 0;
-                    //m.Endereco = Mensagens.RequisitarEndereco(m.Latitude, m.Longitude);
-                    m.Endereco = BuscarEndereco(m.Latitude, m.Longitude);
-
-                    #region Gravar
-                    if (m.Gravar())
+                    try
                     {
-                        m.Tipo_Mensagem = "EMG";
-                        if (r.veiculo != null)
-                        {
-                            #region Areas
-                            m.Vei_codigo = r.Vei_codigo;
-                            List<Cerca> areas = new Cerca().BuscarAreas("");
-                            foreach (Cerca area in areas)
-                            {
-                                //esta fora da area
-                                if (area.verifica_fora(m, area))
-                                {
-                                    if (r.veiculo.Cer_codigo != 0 && r.veiculo.Cer_codigo == area.Codigo)
-                                    {
-                                        //Remover da cerca, gravar evento que saiu da area de risco
-                                        r.veiculo.Saiu(area.Codigo, area.Area_risco);
-                                        m.Tipo_Alerta = "Saiu área de risco '" + area.Descricao + "'";
-                                        m.CodAlerta = 16;
-                                        gravar = true;
-                                    }
-                                }
-                                else // esta dentro
-                                {
-                                    if (r.veiculo.Cer_codigo == 0 || r.veiculo.Cer_codigo != area.Codigo)
-                                    {
-                                        //Insere a cerca no veiculo, garvar evento que entrou na area de risco
-                                        r.veiculo.Entrou(area.Codigo, area.Area_risco);
-                                        m.Tipo_Alerta = "Entrou área de risco '" + area.Descricao + "'";
-                                        m.CodAlerta = 15;
-                                        gravar = true;
-                                    }
-                                }
-                                if (gravar)
-                                {
-                                    m.Gravar();
-                                    gravar = false;
-                                }
-                            }
-                            #endregion
+                        id = mensagem[1];
 
-                            #region VeiculoCerca
-                            List<Veiculo_Cerca> vcs = new Veiculo_Cerca().porVeiculo(r.veiculo.Codigo);
-                            foreach (Veiculo_Cerca vc in vcs)
+                        var m = new Mensagens();
+                        var r = new Rastreador();
+                        r.PorId(id);
+
+                        m.Data_Gps = mensagem[4].Substring(0, 4) + "-" + mensagem[4].Substring(4, 2) + "-" + mensagem[4].Substring(6, 2) + " " + mensagem[5];
+                        m.Data_Recebida = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
+                        m.ID_Rastreador = id;
+                        m.Mensagem = string.Join(";", mensagem);
+                        m.Ras_codigo = r.Codigo;
+                        m.Tipo_Mensagem = "STT";
+                        m.Latitude = mensagem[7];
+                        m.Longitude = mensagem[8];
+                        m.Tipo_Alerta = "";
+                        m.Velocidade = Convert.ToDecimal(mensagem[9].Replace('.', ',')).ToString("#0", CultureInfo.InvariantCulture).Replace('.', ',');
+                        m.Vei_codigo = r.Vei_codigo != 0 ? r.Vei_codigo : 0;
+                        m.Ignicao = mensagem[15].Count() == 6 ? mensagem[15][0].Equals('0') ? false : true : mensagem[15][8].Equals('0') ? false : true;
+                        m.Hodometro = (Convert.ToInt32(mensagem[13]) / 1000.0).ToString("#0.0", CultureInfo.InvariantCulture).Replace(',', '.');
+                        m.Bloqueio = mensagem[15][4] == '1' ? true : false;
+                        m.Sirene = mensagem[15][5] == '1' ? true : false;
+                        m.Tensao = mensagem[14];
+                        m.Horimetro = 0;
+                        m.CodAlerta = 0;
+                        //m.Endereco = Mensagens.RequisitarEndereco(m.Latitude, m.Longitude);
+                        m.Endereco = Util.BuscarEndereco(m.Latitude, m.Longitude);
+
+                        #region Gravar
+                        if (m.Gravar())
+                        {
+                            m.Tipo_Mensagem = "EMG";
+                            if (r.veiculo != null)
                             {
-                                try
+                                #region Areas
+                                m.Vei_codigo = r.Vei_codigo;
+                                List<Cerca> areas = new Cerca().BuscarAreas("");
+                                foreach (Cerca area in areas)
                                 {
                                     //esta fora da area
-                                    if (vc.cerca.verifica_fora(m, vc.cerca))
+                                    if (area.verifica_fora(m, area))
                                     {
-                                        //mas estava dentro
-                                        if (vc.dentro)
+                                        if (r.veiculo.Cer_codigo != 0 && r.veiculo.Cer_codigo == area.Codigo)
                                         {
-                                            //trocar valor do vc para FORA, gravar evento que saiu na cerca em questao
-                                            r.veiculo.Saiu(vc.cerca.Codigo, vc.cerca.Area_risco);
-                                            m.Tipo_Alerta = "Saiu da Cerca '" + vc.cerca.Descricao + "'";
-                                            m.CodAlerta = 14;
+                                            //Remover da cerca, gravar evento que saiu da area de risco
+                                            r.veiculo.Saiu(area.Codigo, area.Area_risco);
+                                            m.Tipo_Alerta = "Saiu área de risco '" + area.Descricao + "'";
+                                            m.CodAlerta = 16;
                                             gravar = true;
                                         }
                                     }
                                     else // esta dentro
                                     {
-                                        if (!vc.dentro)
+                                        if (r.veiculo.Cer_codigo == 0 || r.veiculo.Cer_codigo != area.Codigo)
                                         {
-                                            //trocar valor do vc para DENTRO, gravar evento que Entrou na cerca em questao
-                                            r.veiculo.Entrou(vc.cerca.Codigo, vc.cerca.Area_risco);
-                                            m.Tipo_Alerta = "Entrou na Cerca '" + vc.cerca.Descricao + "'";
-                                            m.CodAlerta = 13;
+                                            //Insere a cerca no veiculo, garvar evento que entrou na area de risco
+                                            r.veiculo.Entrou(area.Codigo, area.Area_risco);
+                                            m.Tipo_Alerta = "Entrou área de risco '" + area.Descricao + "'";
+                                            m.CodAlerta = 15;
                                             gravar = true;
                                         }
                                     }
@@ -266,88 +230,82 @@ namespace Monitoramento
                                         gravar = false;
                                     }
                                 }
-                                catch (Exception ex)
+                                #endregion
+
+                                #region VeiculoCerca
+                                List<Veiculo_Cerca> vcs = new Veiculo_Cerca().porVeiculo(r.veiculo.Codigo);
+                                foreach (Veiculo_Cerca vc in vcs)
                                 {
+                                    try
+                                    {
+                                        //esta fora da area
+                                        if (vc.cerca.verifica_fora(m, vc.cerca))
+                                        {
+                                            //mas estava dentro
+                                            if (vc.dentro)
+                                            {
+                                                //trocar valor do vc para FORA, gravar evento que saiu na cerca em questao
+                                                r.veiculo.Saiu(vc.cerca.Codigo, vc.cerca.Area_risco);
+                                                m.Tipo_Alerta = "Saiu da Cerca '" + vc.cerca.Descricao + "'";
+                                                m.CodAlerta = 14;
+                                                gravar = true;
+                                            }
+                                        }
+                                        else // esta dentro
+                                        {
+                                            if (!vc.dentro)
+                                            {
+                                                //trocar valor do vc para DENTRO, gravar evento que Entrou na cerca em questao
+                                                r.veiculo.Entrou(vc.cerca.Codigo, vc.cerca.Area_risco);
+                                                m.Tipo_Alerta = "Entrou na Cerca '" + vc.cerca.Descricao + "'";
+                                                m.CodAlerta = 13;
+                                                gravar = true;
+                                            }
+                                        }
+                                        if (gravar)
+                                        {
+                                            m.Gravar();
+                                            gravar = false;
+                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
 
-                                    /*StreamWriter wr = new StreamWriter("Erro interpretacao.txt", true);
-                                    wr.WriteLine("ERRO ARMAZENAMENTO CERCA "+ex.Message);
-                                    wr.Close();*/
+                                        /*StreamWriter wr = new StreamWriter("Erro interpretacao.txt", true);
+                                        wr.WriteLine("ERRO ARMAZENAMENTO CERCA "+ex.Message);
+                                        wr.Close();*/
+                                    }
                                 }
+                                #endregion
                             }
-                            #endregion
                         }
+                        #endregion
                     }
-                    #endregion
-
+                    catch (Exception e)
+                    {
+                        StreamWriter txt = new StreamWriter("erros_01.txt", true);
+                        txt.WriteLine("ERRO: " + e.Message.ToString());
+                        txt.Close();
+                    }
                     #endregion
                 }
                 else if (mensagem[0].Contains("EMG")) //mensagem proveniente de uma EMERGÊNCIA
                 {
                     #region Mensagem de Emergência
-                    
-                    var r = new Rastreador();
-                    var m = new Mensagens();
-
-                    id = mensagem[1];
-                    r.PorId(id);
-                    
-                    m.Data_Gps = mensagem[4].Substring(0, 4) + "-" + mensagem[4].Substring(4, 2) + "-" + mensagem[4].Substring(6, 2) + " " + mensagem[5];
-                    m.Data_Recebida = DateTime.Now.ToString();
-                    m.ID_Rastreador = id;
-                    m.Mensagem = string.Join(";", mensagem);
-                    m.Ras_codigo = r.Codigo;
-                    m.Tipo_Mensagem = "EMG";
-                    m.Latitude = mensagem[7];
-                    m.Longitude = mensagem[8];
-                    m.Velocidade = Convert.ToDecimal(mensagem[9].Replace('.', ',')).ToString("#0", CultureInfo.InvariantCulture).Replace('.', ',');
-                    m.Ignicao = mensagem[15].Count() == 6 ? mensagem[15][0].Equals('0') ? false : true : mensagem[15][8].Equals('0') ? false : true;
-                    m.Hodometro = (Convert.ToInt32(mensagem[13]) / 1000.0).ToString("#0.0", CultureInfo.InvariantCulture).Replace(',', '.');
-                    m.Bloqueio = mensagem[15][4] == '1' ? true : false;
-                    m.Sirene = mensagem[15][5] == '1' ? true : false;
-                    m.Tensao = mensagem[14];
-                    m.Horimetro = 0;
-                    //m.Endereco = Mensagens.RequisitarEndereco(m.Latitude, m.Longitude);
-                    m.Endereco = BuscarEndereco(m.Latitude, m.Longitude);
-
-                    m.CodAlerta = 0;
-
-                    if (r.veiculo != null)
+                    try
                     {
-                        m.Vei_codigo = r.Vei_codigo;
-                    }
+                        var r = new Rastreador();
+                        var m = new Mensagens();
 
-                    if (mensagem[16].Equals("2"))
-                    {
-                        m.Tipo_Alerta = "Parking Lock";
-                        m.CodAlerta = 1;
-                    }
-                    else if (mensagem[16].Equals("3"))
-                    {
-                        m.Tipo_Alerta = "Energia Principal Removida";
-                        m.CodAlerta = 2;
-                    }
-
-                    m.Gravar();
-                    #endregion
-                }
-                else if (mensagem[0].Contains("EVT")) //mensagem proveniente de um EVENTO
-                {
-                    #region Mensagem de Evento
-                    if (!mensagem[1].Equals("Res"))
-                    {
-                        #region Evento Não Comando
                         id = mensagem[1];
-                        Rastreador r = new Rastreador();
                         r.PorId(id);
 
-                        Mensagens m = new Mensagens();
-
                         m.Data_Gps = mensagem[4].Substring(0, 4) + "-" + mensagem[4].Substring(4, 2) + "-" + mensagem[4].Substring(6, 2) + " " + mensagem[5];
-                        m.Data_Recebida = DateTime.Now.ToString();
+                        m.Data_Recebida = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
                         m.ID_Rastreador = id;
                         m.Mensagem = string.Join(";", mensagem);
                         m.Ras_codigo = r.Codigo;
-                        m.Tipo_Mensagem = "EVT";
+                        m.Tipo_Mensagem = "EMG";
                         m.Latitude = mensagem[7];
                         m.Longitude = mensagem[8];
                         m.Velocidade = Convert.ToDecimal(mensagem[9].Replace('.', ',')).ToString("#0", CultureInfo.InvariantCulture).Replace('.', ',');
@@ -357,48 +315,117 @@ namespace Monitoramento
                         m.Sirene = mensagem[15][5] == '1' ? true : false;
                         m.Tensao = mensagem[14];
                         m.Horimetro = 0;
+                        m.Tipo_Alerta = "";
                         //m.Endereco = Mensagens.RequisitarEndereco(m.Latitude, m.Longitude);
-                        m.Endereco = BuscarEndereco(m.Latitude, m.Longitude);
+                        m.Endereco = Util.BuscarEndereco(m.Latitude, m.Longitude);
+
                         m.CodAlerta = 0;
 
-                        #region Eventos
                         if (r.veiculo != null)
                         {
                             m.Vei_codigo = r.Vei_codigo;
                         }
+
                         if (mensagem[16].Equals("2"))
                         {
-                            m.Tipo_Alerta = "Botão de Pânico Acionado";
-                            m.CodAlerta = 3;
-                            gravar = true;
+                            m.Tipo_Alerta = "Parking Lock";
+                            m.CodAlerta = 1;
                         }
-                        else if (mensagem[16].Equals("3"))//entrada 2 desligada
+                        else if (mensagem[16].Equals("3"))
                         {
-                            m.Tipo_Alerta = "Sensor Auxiliar Desligado";
-                            m.CodAlerta = 4;
-                            gravar = true;
+                            m.Tipo_Alerta = "Energia Principal Removida";
+                            m.CodAlerta = 2;
                         }
-                        else if (mensagem[16].Equals("4"))//entrada 2 ligada
-                        {
-                            m.Tipo_Alerta = "Sensor Auxiliar Ligado";
-                            m.CodAlerta = 5;
-                            gravar = true;
-                        }
-                        else if (mensagem[16].Equals("5")) // entrada 3 Desligada
-                        {
-                            m.Tipo_Alerta = "Tomada de Força Desligada";
-                            m.CodAlerta = 6;
-                            gravar = true;
-                        }
-                        else if (mensagem[16].Equals("6"))//entrada 3 Ligada
-                        {
-                            m.Tipo_Alerta = "Tomada de Força Ligada";
-                            m.CodAlerta = 7;
-                            gravar = true;
-                        }
-                        #endregion
 
                         m.Gravar();
+                    }
+                    catch (Exception e)
+                    {
+                        StreamWriter txt = new StreamWriter("erros_02.txt", true);
+                        txt.WriteLine("ERRO: " + e.Message.ToString());
+                        txt.Close();
+                    }
+                    #endregion
+                }
+                else if (mensagem[0].Contains("EVT")) //mensagem proveniente de um EVENTO
+                {
+                    #region Mensagem de Evento
+                    if (!mensagem[1].Equals("Res"))
+                    {
+                        #region Evento Não Comando
+                        try
+                        {
+                            id = mensagem[1];
+                            Rastreador r = new Rastreador();
+                            r.PorId(id);
+
+                            Mensagens m = new Mensagens();
+
+                            m.Data_Gps = mensagem[4].Substring(0, 4) + "-" + mensagem[4].Substring(4, 2) + "-" + mensagem[4].Substring(6, 2) + " " + mensagem[5];
+                            m.Data_Recebida = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
+                            m.ID_Rastreador = id;
+                            m.Mensagem = string.Join(";", mensagem);
+                            m.Ras_codigo = r.Codigo;
+                            m.Tipo_Mensagem = "EVT";
+                            m.Latitude = mensagem[7];
+                            m.Longitude = mensagem[8];
+                            m.Velocidade = Convert.ToDecimal(mensagem[9].Replace('.', ',')).ToString("#0", CultureInfo.InvariantCulture).Replace('.', ',');
+                            m.Ignicao = mensagem[15].Count() == 6 ? mensagem[15][0].Equals('0') ? false : true : mensagem[15][8].Equals('0') ? false : true;
+                            m.Hodometro = (Convert.ToInt32(mensagem[13]) / 1000.0).ToString("#0.0", CultureInfo.InvariantCulture).Replace(',', '.');
+                            m.Bloqueio = mensagem[15][4] == '1' ? true : false;
+                            m.Sirene = mensagem[15][5] == '1' ? true : false;
+                            m.Tensao = mensagem[14];
+                            m.Horimetro = 0;
+                            //m.Endereco = Mensagens.RequisitarEndereco(m.Latitude, m.Longitude);
+                            m.Endereco = Util.BuscarEndereco(m.Latitude, m.Longitude);
+                            m.CodAlerta = 0;
+                            m.Tipo_Alerta = "";
+
+                            #region Eventos
+                            if (r.veiculo != null)
+                            {
+                                m.Vei_codigo = r.Vei_codigo;
+                            }
+                            if (mensagem[16].Equals("2"))
+                            {
+                                m.Tipo_Alerta = "Botão de Pânico Acionado";
+                                m.CodAlerta = 3;
+                                gravar = true;
+                            }
+                            else if (mensagem[16].Equals("3"))//entrada 2 desligada
+                            {
+                                m.Tipo_Alerta = "Sensor Auxiliar Desligado";
+                                m.CodAlerta = 4;
+                                gravar = true;
+                            }
+                            else if (mensagem[16].Equals("4"))//entrada 2 ligada
+                            {
+                                m.Tipo_Alerta = "Sensor Auxiliar Ligado";
+                                m.CodAlerta = 5;
+                                gravar = true;
+                            }
+                            else if (mensagem[16].Equals("5")) // entrada 3 Desligada
+                            {
+                                m.Tipo_Alerta = "Tomada de Força Desligada";
+                                m.CodAlerta = 6;
+                                gravar = true;
+                            }
+                            else if (mensagem[16].Equals("6"))//entrada 3 Ligada
+                            {
+                                m.Tipo_Alerta = "Tomada de Força Ligada";
+                                m.CodAlerta = 7;
+                                gravar = true;
+                            }
+                            #endregion
+
+                            m.Gravar();
+                        }
+                        catch (Exception e)
+                        {
+                            StreamWriter txt = new StreamWriter("erros_03_1.txt", true);
+                            txt.WriteLine("ERRO: " + e.Message.ToString());
+                            txt.Close();
+                        }                        
                         #endregion
                     }
                     else // Se for um Evento de Comando
@@ -407,7 +434,7 @@ namespace Monitoramento
                         try
                         {
                             var m = new Mensagens();
-                            m.Data_Recebida = DateTime.Now.ToString();
+                            m.Data_Recebida = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
                             m.ID_Rastreador = mensagem[0] == "SA200CMD" ? mensagem[3] : mensagem[2];
                             m.Mensagem = string.Join(";", mensagem);
                             m.Latitude = "+00.0000";
@@ -418,9 +445,11 @@ namespace Monitoramento
 
                             m.GravarCMD();
                         }
-                        catch (Exception)
+                        catch (Exception e)
                         {
-                            //nada
+                            StreamWriter txt = new StreamWriter("erros_03_2.txt", true);
+                            txt.WriteLine("ERRO: " + e.Message.ToString());
+                            txt.Close();
                         }
                         #endregion
                     }
@@ -429,74 +458,83 @@ namespace Monitoramento
                 else if (mensagem[0].Contains("ALT")) //mensagem proveniente de um ALERT
                 {
                     #region Mensagem de um ALERT
-                    id = mensagem[1];
-                    Rastreador r = new Rastreador();
-                    r.PorId(id);
-
-                    Mensagens m = new Mensagens();
-
-                    m.Data_Gps = mensagem[4].Substring(0, 4) + "-" + mensagem[4].Substring(4, 2) + "-" + mensagem[4].Substring(6, 2) + " " + mensagem[5];
-                    m.Data_Recebida = DateTime.Now.ToString();
-                    m.ID_Rastreador = id;
-                    m.Mensagem = string.Join(";", mensagem);
-                    m.Ras_codigo = r.Codigo;
-                    m.Tipo_Mensagem = "ALT";
-                    m.Latitude = mensagem[7];
-                    m.Longitude = mensagem[8];
-                    m.Velocidade = Convert.ToDecimal(mensagem[9].Replace('.', ',')).ToString("#0", CultureInfo.InvariantCulture).Replace('.', ',');
-                    m.Ignicao = mensagem[15].Count() == 6 ? mensagem[15][0].Equals('0') ? false : true : mensagem[15][8].Equals('0') ? false : true;
-                    m.Hodometro = (Convert.ToInt32(mensagem[13]) / 1000.0).ToString("#0.0", CultureInfo.InvariantCulture).Replace(',', '.');
-                    m.Bloqueio = mensagem[15][4] == '1' ? true : false;
-                    m.Sirene = mensagem[15][5] == '1' ? true : false;
-                    m.Tensao = mensagem[14];
-                    m.Horimetro = 0;
-                    m.CodAlerta = 0;
-                    //m.Endereco = Mensagens.RequisitarEndereco(m.Latitude, m.Longitude);
-                    m.Endereco = BuscarEndereco(m.Latitude, m.Longitude);
-
-                    #region Eventos
-                    if (r.veiculo != null)
+                    try
                     {
-                        m.Vei_codigo = r.Vei_codigo;
-                    }
-                    if (mensagem[16].Equals("3"))
-                    {
-                        m.Tipo_Alerta = "Antena GPS Desconectada";
-                        m.CodAlerta = 8;
-                        gravar = true;
-                    }
-                    else
-                        if (mensagem[16].Equals("4"))
+                        id = mensagem[1];
+                        Rastreador r = new Rastreador();
+                        r.PorId(id);
+
+                        Mensagens m = new Mensagens();
+
+                        m.Data_Gps = mensagem[4].Substring(0, 4) + "-" + mensagem[4].Substring(4, 2) + "-" + mensagem[4].Substring(6, 2) + " " + mensagem[5];
+                        m.Data_Recebida = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
+                        m.ID_Rastreador = id;
+                        m.Mensagem = string.Join(";", mensagem);
+                        m.Ras_codigo = r.Codigo;
+                        m.Tipo_Mensagem = "ALT";
+                        m.Latitude = mensagem[7];
+                        m.Longitude = mensagem[8];
+                        m.Velocidade = Convert.ToDecimal(mensagem[9].Replace('.', ',')).ToString("#0", CultureInfo.InvariantCulture).Replace('.', ',');
+                        m.Ignicao = mensagem[15].Count() == 6 ? mensagem[15][0].Equals('0') ? false : true : mensagem[15][8].Equals('0') ? false : true;
+                        m.Hodometro = (Convert.ToInt32(mensagem[13]) / 1000.0).ToString("#0.0", CultureInfo.InvariantCulture).Replace(',', '.');
+                        m.Bloqueio = mensagem[15][4] == '1' ? true : false;
+                        m.Sirene = mensagem[15][5] == '1' ? true : false;
+                        m.Tensao = mensagem[14];
+                        m.Horimetro = 0;
+                        m.CodAlerta = 0;
+                        m.Tipo_Alerta = "";
+                        //m.Endereco = Mensagens.RequisitarEndereco(m.Latitude, m.Longitude);
+                        m.Endereco = Util.BuscarEndereco(m.Latitude, m.Longitude);
+
+                        #region Eventos
+                        if (r.veiculo != null)
                         {
-                            m.Tipo_Alerta = "Antena GPS Conectada";
-                            m.CodAlerta = 9;
+                            m.Vei_codigo = r.Vei_codigo;
+                        }
+                        if (mensagem[16].Equals("3"))
+                        {
+                            m.Tipo_Alerta = "Antena GPS Desconectada";
+                            m.CodAlerta = 8;
                             gravar = true;
                         }
                         else
-                            if (mensagem[16].Equals("15"))
+                            if (mensagem[16].Equals("4"))
                             {
-                                m.Tipo_Alerta = "Colisão";
-                                m.CodAlerta = 10;
+                                m.Tipo_Alerta = "Antena GPS Conectada";
+                                m.CodAlerta = 9;
                                 gravar = true;
                             }
                             else
-                                if (mensagem[16].Equals("16"))
+                                if (mensagem[16].Equals("15"))
                                 {
-                                    m.Tipo_Alerta = "Veículo sofreu batida";
-                                    m.CodAlerta = 11;
+                                    m.Tipo_Alerta = "Colisão";
+                                    m.CodAlerta = 10;
                                     gravar = true;
                                 }
                                 else
-                                    if (mensagem[16].Equals("50"))
+                                    if (mensagem[16].Equals("16"))
                                     {
-                                        m.Tipo_Alerta = "Jammer Detectado";
-                                        m.CodAlerta = 12;
+                                        m.Tipo_Alerta = "Veículo sofreu batida";
+                                        m.CodAlerta = 11;
                                         gravar = true;
                                     }
-                    #endregion
-                    
-                    m.Gravar();
+                                    else
+                                        if (mensagem[16].Equals("50"))
+                                        {
+                                            m.Tipo_Alerta = "Jammer Detectado";
+                                            m.CodAlerta = 12;
+                                            gravar = true;
+                                        }
+                        #endregion
 
+                        m.Gravar();
+                    }
+                    catch (Exception e)
+                    {
+                        StreamWriter txt = new StreamWriter("erros_04.txt", true);
+                        txt.WriteLine("ERRO: " + e.Message.ToString());
+                        txt.Close();
+                    }
                     #endregion
                 }
                 else if (mensagem[0].Contains("CMD")) //mensagem proveniente de um COMANDO
@@ -505,7 +543,7 @@ namespace Monitoramento
                     try
                     {
                         var m = new Mensagens();
-                        m.Data_Recebida = DateTime.Now.ToString();
+                        m.Data_Recebida = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
                         m.ID_Rastreador = mensagem[0] == "SA200CMD" ? mensagem[3] : mensagem[2];
                         m.Mensagem = string.Join(";", mensagem);
                         m.Latitude = "+00.0000";
@@ -516,48 +554,22 @@ namespace Monitoramento
                         m.GravarCMD();
 
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
                         //nada
+                        StreamWriter txt = new StreamWriter("erros_05.txt", true);
+                        txt.WriteLine("ERRO: " + e.Message.ToString());
+                        txt.Close();
                     }
                     #endregion
                 }
             }
-            catch (Exception)
-            {
-                //nada
-            }
-        }
-
-        public static string BuscarEndereco(string _lat, string _lng)
-        {
-            try
-            {
-                var pos = new Posicionamento();
-                var enderecoMONGO = _lat != "+00.0000" && _lat != "" ? pos.PesquisarEndereco(_lat, _lng) : "Endereço Indisponível";
-
-                if (enderecoMONGO != "Endereço Indisponível")
-                {
-                    Mensagens.GravarRequisicoes("mongo");
-                }
-                else
-                {
-                    enderecoMONGO = Mensagens.RequisitarEndereco(_lat, _lng);
-                    pos.Endereco = enderecoMONGO;
-                    pos.Latitude = _lat;
-                    pos.Longitude = _lng;
-                    pos.Gravar();
-                }
-
-                return enderecoMONGO;
-            }
             catch (Exception e)
             {
-                StreamWriter txt = new StreamWriter("mongo_erro_nova_funcao.txt", true);
+                //nada
+                StreamWriter txt = new StreamWriter("erros_06.txt", true);
                 txt.WriteLine("ERRO: " + e.Message.ToString());
                 txt.Close();
-
-                return Mensagens.RequisitarEndereco(_lat, _lng);
             }
         }
     }
