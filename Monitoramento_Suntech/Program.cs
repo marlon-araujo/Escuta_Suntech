@@ -25,7 +25,7 @@ namespace Monitoramento
             //socket - 7002 - SUNTECH
             //socket - 7005 - SUNTECH ST340/ST350
             //socket - 7007 - SUNTECH ST200
-            socket = new TcpListener(IPAddress.Any, 7007);
+            socket = new TcpListener(IPAddress.Any, 7005);
             try
             {
                 Console.WriteLine("Conectado !");
@@ -279,78 +279,7 @@ namespace Monitoramento
                                 */
                                 #endregion
 
-                                #region Area de Risco
-                                var area_risco = Cerca.BuscarAreaRisco();
-                                if (area_risco != null)
-                                {
-                                    foreach (DataRow item in area_risco.Rows)
-                                    {
-                                        //está dentro da area de risco -> ENTROU
-                                        if (!Cerca.VerificaDentroCercaArea(Convert.ToInt32(item["Tipo_cerca"]), item["Posicoes"].ToString(), m.Latitude, m.Longitude))
-                                        {
-                                            //não estava na cerca
-                                            if (!Cerca.VerificaDentroArea(Convert.ToInt32(item["Codigo"]), m.Vei_codigo))
-                                            {
-                                                //Console.WriteLine("-------> ENTROU");
-                                                Cerca.IncluirExcluirVeiculoAreaRiscoCerca(true, true, m.Vei_codigo, Convert.ToInt32(item["Codigo"]));
-                                                m.Tipo_Alerta = "Entrou área de risco '" + item["Descricao"] + "'";
-                                                m.CodAlerta = 15;
-                                                m.GravarEvento();
-                                            }
-                                        }
-                                        //está fora da area de risco -> SAIU
-                                        else
-                                        {
-                                            //não estava na cerca
-                                            if (Cerca.VerificaDentroArea(Convert.ToInt32(item["Codigo"]), m.Vei_codigo))
-                                            {
-                                                //Console.WriteLine("-------> SAIU");
-                                                Cerca.IncluirExcluirVeiculoAreaRiscoCerca(false, true, m.Vei_codigo, Convert.ToInt32(item["Codigo"]));
-                                                m.Tipo_Alerta = "Saiu área de risco '" + item["Descricao"] + "'";
-                                                m.CodAlerta = 16;
-                                                m.GravarEvento();
-                                            }
-                                        }
-                                    }
-                                }
-                                #endregion
-
-                                #region Cercas
-                                var cercas_veiculo = Cerca.BuscarCercas(m.Vei_codigo);
-                                if (cercas_veiculo != null)
-                                {
-                                    if (cercas_veiculo.Rows.Count > 0)
-                                    {
-                                        foreach (DataRow item in cercas_veiculo.Rows)
-                                        {
-                                            //está dentro da cerca -> ENTROU
-                                            if (!Cerca.VerificaDentroCercaArea(Convert.ToInt32(item["Tipo_cerca"]), item["Posicoes"].ToString(), m.Latitude, m.Longitude))
-                                            {
-                                                if (Convert.ToInt32(item["Dentro"]) == 0)
-                                                {
-                                                    //Console.WriteLine("-------> ENTROU");
-                                                    Cerca.IncluirExcluirVeiculoAreaRiscoCerca(true, false, m.Vei_codigo, Convert.ToInt32(item["Codigo"]));
-                                                    m.Tipo_Alerta = "Entrou cerca '" + item["Descricao"] + "'";
-                                                    m.CodAlerta = 13;
-                                                    m.GravarEvento();
-                                                }
-                                            }
-                                            //está fora da cerca -> SAIU
-                                            else
-                                            {
-                                                if (Convert.ToInt32(item["Dentro"]) == 1)
-                                                {
-                                                    //Console.WriteLine("-------> SAIU");
-                                                    Cerca.IncluirExcluirVeiculoAreaRiscoCerca(false, false, m.Vei_codigo, Convert.ToInt32(item["Codigo"]));
-                                                    m.Tipo_Alerta = "Saiu cerca '" + item["Descricao"] + "'";
-                                                    m.CodAlerta = 14;
-                                                    m.GravarEvento();
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                #endregion
+                                EventoAreaCerca(m);
                             }
                         }
                         #endregion
@@ -466,35 +395,48 @@ namespace Monitoramento
                             {
                                 m.Vei_codigo = r.Vei_codigo;
                             }
-                            if (mensagem[16].Equals("2"))
+                            /*if (mensagem[16].Equals("2"))
                             {
                                 m.Tipo_Alerta = "Botão de Pânico Acionado";
                                 m.CodAlerta = 3;
                                 gravar = true;
                             }
-                            else if (mensagem[16].Equals("3"))//entrada 2 desligada
+                            else*/ if (mensagem[16].Equals("3")) // entrada 2 desligada
                             {
-                                m.Tipo_Alerta = "Sensor Auxiliar Desligado";
+                                m.Tipo_Alerta = "Sensor Porta Aberta";
                                 m.CodAlerta = 4;
                                 gravar = true;
                             }
-                            else if (mensagem[16].Equals("4"))//entrada 2 ligada
+                            else if (mensagem[16].Equals("4")) // entrada 2 ligada
                             {
-                                m.Tipo_Alerta = "Sensor Auxiliar Ligado";
+                                m.Tipo_Alerta = "Sensor Porta Fechada";
                                 m.CodAlerta = 5;
                                 gravar = true;
                             }
                             else if (mensagem[16].Equals("5")) // entrada 3 Desligada
                             {
-                                m.Tipo_Alerta = "Tomada de Força Desligada";
+                                m.Tipo_Alerta = "Sensor Plataforma Desativada";
                                 m.CodAlerta = 6;
                                 gravar = true;
                             }
-                            else if (mensagem[16].Equals("6"))//entrada 3 Ligada
+                            else if (mensagem[16].Equals("6")) // entrada 3 Ligada
                             {
-                                m.Tipo_Alerta = "Tomada de Força Ligada";
+                                m.Tipo_Alerta = "Sensor Plataforma Ativada";
                                 m.CodAlerta = 7;
                                 gravar = true;
+                            }
+                            else if (mensagem[15].Count() == 6)
+                            {
+                                if (mensagem[15][1].Equals('1'))
+                                {
+                                    m.Tipo_Alerta = "Sensor Painel Fechado";
+                                    m.CodAlerta = 22;
+                                }
+                                else if (mensagem[15][1].Equals('0'))
+                                {
+                                    m.Tipo_Alerta = "Sensor Painel Violado";
+                                    m.CodAlerta = 21;
+                                }
                             }
                             #endregion
 
@@ -651,6 +593,82 @@ namespace Monitoramento
                 txt.WriteLine("ERRO: " + e.Message.ToString());
                 txt.Close();
             }
+        }
+
+        public static void EventoAreaCerca(Mensagens m)
+        {
+            #region Area de Risco
+            var area_risco = Cerca.BuscarAreaRisco();
+            if (area_risco != null)
+            {
+                foreach (DataRow item in area_risco.Rows)
+                {
+                    //está dentro da area de risco -> ENTROU
+                    if (!Cerca.VerificaDentroCercaArea(Convert.ToInt32(item["Tipo_cerca"]), item["Posicoes"].ToString(), m.Latitude, m.Longitude))
+                    {
+                        //não estava na cerca
+                        if (!Cerca.VerificaDentroArea(Convert.ToInt32(item["Codigo"]), m.Vei_codigo))
+                        {
+                            //Console.WriteLine("-------> ENTROU");
+                            Cerca.IncluirExcluirVeiculoAreaRiscoCerca(true, true, m.Vei_codigo, Convert.ToInt32(item["Codigo"]));
+                            m.Tipo_Alerta = "Entrou área de risco '" + item["Descricao"] + "'";
+                            m.CodAlerta = 15;
+                            m.GravarEvento();
+                        }
+                    }
+                    //está fora da area de risco -> SAIU
+                    else
+                    {
+                        //não estava na cerca
+                        if (Cerca.VerificaDentroArea(Convert.ToInt32(item["Codigo"]), m.Vei_codigo))
+                        {
+                            //Console.WriteLine("-------> SAIU");
+                            Cerca.IncluirExcluirVeiculoAreaRiscoCerca(false, true, m.Vei_codigo, Convert.ToInt32(item["Codigo"]));
+                            m.Tipo_Alerta = "Saiu área de risco '" + item["Descricao"] + "'";
+                            m.CodAlerta = 16;
+                            m.GravarEvento();
+                        }
+                    }
+                }
+            }
+            #endregion
+
+            #region Cercas
+            var cercas_veiculo = Cerca.BuscarCercas(m.Vei_codigo);
+            if (cercas_veiculo != null)
+            {
+                if (cercas_veiculo.Rows.Count > 0)
+                {
+                    foreach (DataRow item in cercas_veiculo.Rows)
+                    {
+                        //está dentro da cerca -> ENTROU
+                        if (!Cerca.VerificaDentroCercaArea(Convert.ToInt32(item["Tipo_cerca"]), item["Posicoes"].ToString(), m.Latitude, m.Longitude))
+                        {
+                            if (Convert.ToInt32(item["Dentro"]) == 0)
+                            {
+                                //Console.WriteLine("-------> ENTROU");
+                                Cerca.IncluirExcluirVeiculoAreaRiscoCerca(true, false, m.Vei_codigo, Convert.ToInt32(item["Codigo"]));
+                                m.Tipo_Alerta = "Entrou cerca '" + item["Descricao"] + "'";
+                                m.CodAlerta = 13;
+                                m.GravarEvento();
+                            }
+                        }
+                        //está fora da cerca -> SAIU
+                        else
+                        {
+                            if (Convert.ToInt32(item["Dentro"]) == 1)
+                            {
+                                //Console.WriteLine("-------> SAIU");
+                                Cerca.IncluirExcluirVeiculoAreaRiscoCerca(false, false, m.Vei_codigo, Convert.ToInt32(item["Codigo"]));
+                                m.Tipo_Alerta = "Saiu cerca '" + item["Descricao"] + "'";
+                                m.CodAlerta = 14;
+                                m.GravarEvento();
+                            }
+                        }
+                    }
+                }
+            }
+            #endregion
         }
     }
 }
