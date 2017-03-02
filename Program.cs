@@ -158,7 +158,7 @@ namespace Monitoramento
             try
             {
                 var objeto = new Mensagens();
-                bool gravar = false;
+                //bool gravar = false;
                 if (mensagem[0].Contains("STT")) //mensagem proveniente de um STATUS mensagem
                 {
                     #region Mensagem de Status
@@ -323,25 +323,25 @@ namespace Monitoramento
                             {
                                 m.Tipo_Alerta = "Sensor Porta Aberta";
                                 m.CodAlerta = 4;
-                                gravar = true;
+                                //gravar = true;
                             }
                             else if (mensagem[16].Equals("4")) // entrada 2 ligada
                             {
                                 m.Tipo_Alerta = "Sensor Porta Fechada";
                                 m.CodAlerta = 5;
-                                gravar = true;
+                                //gravar = true;
                             }
                             else if (mensagem[16].Equals("5")) // entrada 3 Desligada
                             {
                                 m.Tipo_Alerta = "Sensor Plataforma Desativada";
                                 m.CodAlerta = 6;
-                                gravar = true;
+                                //gravar = true;
                             }
                             else if (mensagem[16].Equals("6")) // entrada 3 Ligada
                             {
                                 m.Tipo_Alerta = "Sensor Plataforma Ativada";
                                 m.CodAlerta = 7;
-                                gravar = true;
+                                //gravar = true;
                             }
                             else if (mensagem[15].Count() == 6)
                             {
@@ -436,31 +436,31 @@ namespace Monitoramento
                         {
                             m.Tipo_Alerta = "Antena GPS Desconectada";
                             m.CodAlerta = 8;
-                            gravar = true;
+                            //gravar = true;
                         }
                         else if (mensagem[16].Equals("4"))
                         {
                             m.Tipo_Alerta = "Antena GPS Conectada";
                             m.CodAlerta = 9;
-                            gravar = true;
+                            //gravar = true;
                         }
                         else if (mensagem[16].Equals("15"))
                         {
                             m.Tipo_Alerta = "Colisão";
                             m.CodAlerta = 10;
-                            gravar = true;
+                            //gravar = true;
                         }
                         else if (mensagem[16].Equals("16"))
                         {
                             m.Tipo_Alerta = "Veículo sofreu batida";
                             m.CodAlerta = 11;
-                            gravar = true;
+                            //gravar = true;
                         }
                         else if (mensagem[16].Equals("50"))
                         {
                             m.Tipo_Alerta = "Jammer Detectado";
                             m.CodAlerta = 12;
-                            gravar = true;
+                            //gravar = true;
                         }
                         #endregion
 
