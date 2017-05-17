@@ -25,7 +25,8 @@ namespace Monitoramento
             //socket - 7002 - SUNTECH
             //socket - 7005 - SUNTECH ST340/ST350
             //socket - 7007 - SUNTECH ST200
-            socket = new TcpListener(IPAddress.Any, 7005);
+            //socket - 7010 - SUNTECH ST01
+            socket = new TcpListener(IPAddress.Any, 7010);
             try
             {
                 Console.WriteLine("Conectado !");
@@ -200,6 +201,10 @@ namespace Monitoramento
                             if (r.veiculo != null)
                             {
                                 Mensagens.EventoAreaCerca(m);
+
+                                //Evento Por E-mail
+                                var corpoEmail = m.Tipo_Alerta + "<br /> Endereço: " + m.Endereco;
+                                Mensagens.EventoPorEmail(m.Vei_codigo, m.CodAlerta, corpoEmail);
                             }
 
                             #region Velocidade
@@ -213,15 +218,16 @@ namespace Monitoramento
                                     m.Tipo_Alerta = "Veículo Ultrapassou a Velocidade";
                                     m.CodAlerta = 23;
                                     m.GravarEvento();
+
+                                    //Evento Por E-mail
+                                    var corpoEmail = m.Tipo_Alerta + "<br /> Velocidade: " + m.Velocidade + "<br /> Endereço: " + m.Endereco;
+                                    Mensagens.EventoPorEmail(m.Vei_codigo, m.CodAlerta, corpoEmail);
                                 }
                             }
                             #endregion
 
                         }
                         #endregion
-
-                        //Evento Por E-mail
-                        Mensagens.EventoPorEmail(m.Vei_codigo, m.CodAlerta, m.Tipo_Alerta);
                     }
                     catch (Exception ex)
                     {
@@ -269,21 +275,26 @@ namespace Monitoramento
                             m.Vei_codigo = r.Vei_codigo;
                         }
 
+                        var grava = false;
+
                         if (mensagem[16].Equals("2"))
                         {
                             m.Tipo_Alerta = "Parking Lock";
                             m.CodAlerta = 1;
+                            grava = true;
                         }
                         else if (mensagem[16].Equals("3"))
                         {
                             m.Tipo_Alerta = "Energia Principal Removida";
                             m.CodAlerta = 2;
+                            grava = true;
                         }
 
-                        m.Gravar();
+                        if (grava) m.Gravar();
 
                         //Evento Por E-mail
-                        Mensagens.EventoPorEmail(m.Vei_codigo, m.CodAlerta, m.Tipo_Alerta);
+                        var corpoEmail = m.Tipo_Alerta + "<br /> Endereço: " + m.Endereco;
+                        Mensagens.EventoPorEmail(m.Vei_codigo, m.CodAlerta, corpoEmail);
                     }
                     catch (Exception ex)
                     {
@@ -333,35 +344,37 @@ namespace Monitoramento
                             {
                                 m.Vei_codigo = r.Vei_codigo;
                             }
+
+                            var grava = false;
                             /*if (mensagem[16].Equals("2"))
                             {
                                 m.Tipo_Alerta = "Botão de Pânico Acionado";
                                 m.CodAlerta = 3;
-                                gravar = true;
+                                grava = true;
                             }
                             else*/ if (mensagem[16].Equals("3")) // entrada 2 desligada
                             {
                                 m.Tipo_Alerta = "Sensor Porta Aberta";
                                 m.CodAlerta = 4;
-                                //gravar = true;
+                                grava = true;
                             }
                             else if (mensagem[16].Equals("4")) // entrada 2 ligada
                             {
                                 m.Tipo_Alerta = "Sensor Porta Fechada";
                                 m.CodAlerta = 5;
-                                //gravar = true;
+                                grava = true;
                             }
                             else if (mensagem[16].Equals("5")) // entrada 3 Desligada
                             {
                                 m.Tipo_Alerta = "Sensor Plataforma Desativada";
                                 m.CodAlerta = 6;
-                                //gravar = true;
+                                grava = true;
                             }
                             else if (mensagem[16].Equals("6")) // entrada 3 Ligada
                             {
                                 m.Tipo_Alerta = "Sensor Plataforma Ativada";
                                 m.CodAlerta = 7;
-                                //gravar = true;
+                                grava = true;
                             }
                             else if (mensagem[15].Count() == 6)
                             {
@@ -369,19 +382,22 @@ namespace Monitoramento
                                 {
                                     m.Tipo_Alerta = "Sensor Painel Fechado";
                                     m.CodAlerta = 22;
+                                    grava = true;
                                 }
                                 else if (mensagem[15][1].Equals('0'))
                                 {
                                     m.Tipo_Alerta = "Sensor Painel Violado";
                                     m.CodAlerta = 21;
+                                    grava = true;
                                 }
                             }
                             #endregion
 
-                            m.Gravar();
+                            if (grava) m.Gravar();
 
                             //Evento Por E-mail
-                            Mensagens.EventoPorEmail(m.Vei_codigo, m.CodAlerta, m.Tipo_Alerta);
+                            var corpoEmail = m.Tipo_Alerta + "<br /> Endereço: " + m.Endereco;
+                            Mensagens.EventoPorEmail(m.Vei_codigo, m.CodAlerta, corpoEmail);
                         }
                         catch (Exception ex)
                         {
@@ -455,42 +471,45 @@ namespace Monitoramento
                         {
                             m.Vei_codigo = r.Vei_codigo;
                         }
+
+                        var grava = false;
                         if (mensagem[16].Equals("3"))
                         {
                             m.Tipo_Alerta = "Antena GPS Desconectada";
                             m.CodAlerta = 8;
-                            //gravar = true;
+                            grava = true;
                         }
                         else if (mensagem[16].Equals("4"))
                         {
                             m.Tipo_Alerta = "Antena GPS Conectada";
                             m.CodAlerta = 9;
-                            //gravar = true;
+                            grava = true;
                         }
                         else if (mensagem[16].Equals("15"))
                         {
                             m.Tipo_Alerta = "Colisão";
                             m.CodAlerta = 10;
-                            //gravar = true;
+                            grava = true;
                         }
                         else if (mensagem[16].Equals("16"))
                         {
                             m.Tipo_Alerta = "Veículo sofreu batida";
                             m.CodAlerta = 11;
-                            //gravar = true;
+                            grava = true;
                         }
                         else if (mensagem[16].Equals("50"))
                         {
                             m.Tipo_Alerta = "Jammer Detectado";
                             m.CodAlerta = 12;
-                            //gravar = true;
+                            grava = true;
                         }
                         #endregion
 
-                        m.Gravar();
+                        if (grava) m.Gravar();
 
                         //Evento Por E-mail
-                        Mensagens.EventoPorEmail(m.Vei_codigo, m.CodAlerta, m.Tipo_Alerta);
+                        var corpoEmail = m.Tipo_Alerta + "<br /> Endereço: " + m.Endereco;
+                        Mensagens.EventoPorEmail(m.Vei_codigo, m.CodAlerta, corpoEmail);
                     }
                     catch (Exception ex)
                     {
