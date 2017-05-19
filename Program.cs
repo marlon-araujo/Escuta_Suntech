@@ -42,7 +42,7 @@ namespace Monitoramento
             }
             catch (Exception ex)
             {
-                LogException.GravarException("Erro: " + ex.Message.ToString() + " - Mensagem: " + (ex.InnerException != null ? ex.InnerException.ToString() : " Valor nulo na mensagem "), 12, "Escuta Suntech Novo - Método " + System.Reflection.MethodBase.GetCurrentMethod().Name);
+                //LogException.GravarException("Erro: " + ex.Message.ToString() + " - Mensagem: " + (ex.InnerException != null ? ex.InnerException.ToString() : " Valor nulo na mensagem "), 12, "Escuta Suntech Novo - Método " + System.Reflection.MethodBase.GetCurrentMethod().Name);
                 Console.WriteLine("Erro Conexão: -----" + ex.Message);
             }
             finally
@@ -148,7 +148,7 @@ namespace Monitoramento
             }
             catch (Exception ex)
             {
-                LogException.GravarException("Erro: " + ex.Message.ToString() + " - Mensagem: " + (ex.InnerException != null ? ex.InnerException.ToString() : " Valor nulo na mensagem "), 12, "Escuta Suntech Novo - Método " + System.Reflection.MethodBase.GetCurrentMethod().Name);
+                //LogException.GravarException("Erro: " + ex.Message.ToString() + " - Mensagem: " + (ex.InnerException != null ? ex.InnerException.ToString() : " Valor nulo na mensagem "), 12, "Escuta Suntech Novo - Método " + System.Reflection.MethodBase.GetCurrentMethod().Name);
                 //Console.WriteLine("\n\n" + e.Message);
                 client.Close();
             }
@@ -231,7 +231,7 @@ namespace Monitoramento
                     }
                     catch (Exception ex)
                     {
-                        LogException.GravarException("Erro: " + ex.Message.ToString() + " - Mensagem: " + (ex.InnerException != null ? ex.InnerException.ToString() : " Valor nulo na mensagem "), 12, "Escuta Suntech Novo - Método " + System.Reflection.MethodBase.GetCurrentMethod().Name);
+                        //LogException.GravarException("Erro: " + ex.Message.ToString() + " - Mensagem: " + (ex.InnerException != null ? ex.InnerException.ToString() : " Valor nulo na mensagem "), 12, "Escuta Suntech Novo - Método " + System.Reflection.MethodBase.GetCurrentMethod().Name);
                         /*StreamWriter txt = new StreamWriter("erros_01.txt", true);
                         txt.WriteLine("ERRO: " + e.Message.ToString());
                         txt.Close();*/
@@ -298,7 +298,7 @@ namespace Monitoramento
                     }
                     catch (Exception ex)
                     {
-                        LogException.GravarException("Erro: " + ex.Message.ToString() + " - Mensagem: " + (ex.InnerException != null ? ex.InnerException.ToString() : " Valor nulo na mensagem "), 12, "Escuta Suntech Novo - Método " + System.Reflection.MethodBase.GetCurrentMethod().Name);
+                        //LogException.GravarException("Erro: " + ex.Message.ToString() + " - Mensagem: " + (ex.InnerException != null ? ex.InnerException.ToString() : " Valor nulo na mensagem "), 12, "Escuta Suntech Novo - Método " + System.Reflection.MethodBase.GetCurrentMethod().Name);
                         /*StreamWriter txt = new StreamWriter("erros_02.txt", true);
                         txt.WriteLine("ERRO: " + e.Message.ToString());
                         txt.Close();*/
@@ -401,7 +401,7 @@ namespace Monitoramento
                         }
                         catch (Exception ex)
                         {
-                            LogException.GravarException("Erro: " + ex.Message.ToString() + " - Mensagem: " + (ex.InnerException != null ? ex.InnerException.ToString() : " Valor nulo na mensagem "), 12, "Escuta Suntech Novo - Método " + System.Reflection.MethodBase.GetCurrentMethod().Name);
+                            //LogException.GravarException("Erro: " + ex.Message.ToString() + " - Mensagem: " + (ex.InnerException != null ? ex.InnerException.ToString() : " Valor nulo na mensagem "), 12, "Escuta Suntech Novo - Método " + System.Reflection.MethodBase.GetCurrentMethod().Name);
                             /*StreamWriter txt = new StreamWriter("erros_03_1.txt", true);
                             txt.WriteLine("ERRO: " + e.Message.ToString());
                             txt.Close();*/
@@ -427,7 +427,7 @@ namespace Monitoramento
                         }
                         catch (Exception ex)
                         {
-                            LogException.GravarException("Erro: " + ex.Message.ToString() + " - Mensagem: " + (ex.InnerException != null ? ex.InnerException.ToString() : " Valor nulo na mensagem "), 12, "Escuta Suntech Novo - Método " + System.Reflection.MethodBase.GetCurrentMethod().Name);
+                            //LogException.GravarException("Erro: " + ex.Message.ToString() + " - Mensagem: " + (ex.InnerException != null ? ex.InnerException.ToString() : " Valor nulo na mensagem "), 12, "Escuta Suntech Novo - Método " + System.Reflection.MethodBase.GetCurrentMethod().Name);
                             /*
                             StreamWriter txt = new StreamWriter("erros_03_2.txt", true);
                             txt.WriteLine("ERRO: " + e.Message.ToString());
@@ -513,7 +513,7 @@ namespace Monitoramento
                     }
                     catch (Exception ex)
                     {
-                        LogException.GravarException("Erro: " + ex.Message.ToString() + " - Mensagem: " + (ex.InnerException != null ? ex.InnerException.ToString() : " Valor nulo na mensagem "), 12, "Escuta Suntech Novo - Método " + System.Reflection.MethodBase.GetCurrentMethod().Name);
+                        //LogException.GravarException("Erro: " + ex.Message.ToString() + " - Mensagem: " + (ex.InnerException != null ? ex.InnerException.ToString() : " Valor nulo na mensagem "), 12, "Escuta Suntech Novo - Método " + System.Reflection.MethodBase.GetCurrentMethod().Name);
                         /*StreamWriter txt = new StreamWriter("erros_04.txt", true);
                         txt.WriteLine("ERRO: " + e.Message.ToString());
                         txt.Close();*/
@@ -539,7 +539,7 @@ namespace Monitoramento
                     }
                     catch (Exception ex)
                     {
-                        LogException.GravarException("Erro: " + ex.Message.ToString() + " - Mensagem: " + (ex.InnerException != null ? ex.InnerException.ToString() : " Valor nulo na mensagem "), 1, "Escuta Suntech Novo - Método " + System.Reflection.MethodBase.GetCurrentMethod().Name);
+                        //LogException.GravarException("Erro: " + ex.Message.ToString() + " - Mensagem: " + (ex.InnerException != null ? ex.InnerException.ToString() : " Valor nulo na mensagem "), 1, "Escuta Suntech Novo - Método " + System.Reflection.MethodBase.GetCurrentMethod().Name);
                         //nada
                         /*StreamWriter txt = new StreamWriter("erros_05.txt", true);
                         txt.WriteLine("ERRO: " + e.Message.ToString());
@@ -550,7 +550,7 @@ namespace Monitoramento
             }
             catch (Exception ex)
             {
-                LogException.GravarException("Erro: " + ex.Message.ToString() + " - Mensagem: " + (ex.InnerException != null ? ex.InnerException.ToString() : " Valor nulo na mensagem "), 12, "Escuta Suntech Novo - Método " + System.Reflection.MethodBase.GetCurrentMethod().Name);
+                //LogException.GravarException("Erro: " + ex.Message.ToString() + " - Mensagem: " + (ex.InnerException != null ? ex.InnerException.ToString() : " Valor nulo na mensagem "), 12, "Escuta Suntech Novo - Método " + System.Reflection.MethodBase.GetCurrentMethod().Name);
                 //nada
                 /*StreamWriter txt = new StreamWriter("erros_06.txt", true);
                 txt.WriteLine("ERRO: " + e.Message.ToString());
