@@ -200,12 +200,17 @@ namespace Monitoramento
                             m.Tipo_Mensagem = "EMG";
                             if (r.veiculo != null)
                             {
+                                //Verifica Area de Risco/Cerca
                                 Mensagens.EventoAreaCerca(m);
 
                                 //Evento Por E-mail
                                 var corpoEmail = m.Tipo_Alerta + "<br /> Endereço: " + m.Endereco;
                                 Mensagens.EventoPorEmail(m.Vei_codigo, m.CodAlerta, corpoEmail);
                             }
+
+                            #region Tensão
+
+                            #endregion
 
                             #region Velocidade
                             if (r.Vei_codigo != 0)
