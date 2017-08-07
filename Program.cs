@@ -26,7 +26,11 @@ namespace Monitoramento
             //socket - 7005 - SUNTECH ST340/ST350
             //socket - 7007 - SUNTECH ST200
             //socket - 7010 - SUNTECH ST01
-            socket = new TcpListener(IPAddress.Any, 7010);
+            //socket - 7011 - SUNTECH ST02
+            //socket - 7012 - SUNTECH ST03
+            //socket - 7013 - SUNTECH ST04
+            //socket - 7014 - SUNTECH ST05
+            socket = new TcpListener(IPAddress.Any, 7013);
             try
             {
                 Console.WriteLine("Conectado !");
@@ -108,14 +112,16 @@ namespace Monitoramento
                             {
                                 x++;
 
-                                if (cada.Split(';')[1].Equals("Res"))
+                                if (cada.Split(';')[1].Equals("Res")){
                                     id = mensagem[2];
+                                }
                                 else
                                 {
-                                    if (mensagem[0].Contains("ALV"))
+                                    id = mensagem[1].Split('\r')[0].Trim();
+                                    /*if (mensagem[0].Contains("ALV"))
                                         id = mensagem[1].Split('\r')[0].Trim();
                                     else
-                                        id = mensagem[1].Split('\r')[0].Trim();
+                                        id = mensagem[1].Split('\r')[0].Trim();*/
                                 }
                                 if (socket_rastreadores.ContainsKey(id))
                                 {
@@ -146,7 +152,7 @@ namespace Monitoramento
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 //LogException.GravarException("Erro: " + ex.Message.ToString() + " - Mensagem: " + (ex.InnerException != null ? ex.InnerException.ToString() : " Valor nulo na mensagem "), 12, "Escuta Suntech Novo - Método " + System.Reflection.MethodBase.GetCurrentMethod().Name);
                 //Console.WriteLine("\n\n" + e.Message);
@@ -157,12 +163,200 @@ namespace Monitoramento
 
         private static void Interpretar_Msg(List<String> mensagem)
         {
+
             string id = "";
             try
             {
                 var objeto = new Mensagens();
-                //bool gravar = false;
-                if (mensagem[0].Contains("STT")) //mensagem proveniente de um STATUS mensagem
+                if (mensagem[0].Contains("ST4"))
+                {
+                    #region Mensagem de Localização
+                    try
+                    {
+                        id = mensagem[1];
+                        var m = new Mensagens();
+                        var r = new Rastreador();
+                        r.PorId(id);
+
+                            //MENSAGEM DE POSIÇÃO
+
+                            m.Data_Rastreador = DateTime.Now.ToString("yyyyMMdd HH:mm:ss");
+                            //m.Data_Rastreador = mensagem[4] + " " + mensagem[5];
+                            m.Data_Gps = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                            //m.Data_Gps = mensagem[4].Substring(0, 4) + "-" + mensagem[4].Substring(4, 2) + "-" + mensagem[4].Substring(6, 2) + " " + mensagem[5];
+                            m.Data_Recebida = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
+                            m.ID_Rastreador = id;
+                            m.Mensagem = string.Join(";", mensagem);
+                            m.Ras_codigo = r.Codigo;
+                            m.Tipo_Mensagem ="STT";
+                            m.Latitude = "0";
+                            m.Longitude = "0";
+                            m.Velocidade = "0";
+                            //m.Velocidade = Convert.ToDecimal(mensagem[9].Replace('.', ',')).ToString("#0", CultureInfo.InvariantCulture).Replace('.', ',');
+                            m.Vei_codigo = r.Vei_codigo != 0 ? r.Vei_codigo : 0;
+                            m.Ignicao = true;
+                            //m.Ignicao = mensagem[15].Count() == 6 ? mensagem[15][0].Equals('0') ? false : true : mensagem[15][8].Equals('0') ? false : true;
+                            m.Hodometro = "0";
+                            //m.Hodometro = (Convert.ToInt32(mensagem[13]) / 1000.0).ToString("#0.0", CultureInfo.InvariantCulture).Replace(',', '.');
+                            m.Bloqueio = false;
+                            //m.Bloqueio = mensagem[15][4] == '1' ? true : false;
+                            m.Sirene = false;
+                            //m.Sirene = mensagem[15][5] == '1' ? true : false;
+                            m.Tensao = "0";
+                            //m.Tensao = mensagem[14];
+                            m.Horimetro = 0;
+                            m.CodAlerta = 0;
+                            m.Tipo_Alerta = m.CodAlerta == 0 ? "" : "";
+                            m.Endereco = "";// Util.BuscarEndereco(m.Latitude, m.Longitude);
+
+                            #region Gravar
+                            if (m.Gravar())
+                            {
+                                m.Tipo_Mensagem = "EMG";
+                                if (r.veiculo != null)
+                                {
+                                    //Verifica Area de Risco/Cerca
+                                    Mensagens.EventoAreaCerca(m);
+
+                                    //Evento Por E-mail
+                                    var corpoEmail = m.Tipo_Alerta + "<br /> Endereço: " + m.Endereco;
+                                    Mensagens.EventoPorEmail(m.Vei_codigo, m.CodAlerta, corpoEmail);
+                                }
+
+                                #region Tensão
+
+                                #endregion
+
+                                #region Velocidade
+                                /*if (r.Vei_codigo != 0)
+                            {
+                                var veiculo = Veiculo.BuscarVeiculoVelocidade(m.Vei_codigo);
+                                var velocidade_nova = Convert.ToDecimal(veiculo.vei_velocidade);
+                                if (velocidade_nova < Convert.ToDecimal(m.Velocidade) && velocidade_nova > 0)
+                                {
+                                    m.Tipo_Mensagem = "EVT";
+                                    m.Tipo_Alerta = "Veículo Ultrapassou a Velocidade";
+                                    m.CodAlerta = 23;
+                                    m.GravarEvento();
+
+                                    //Evento Por E-mail
+                                    var corpoEmail = m.Tipo_Alerta + "<br /> Velocidade: " + m.Velocidade + "<br /> Endereço: " + m.Endereco;
+                                    Mensagens.EventoPorEmail(m.Vei_codigo, m.CodAlerta, corpoEmail);
+                                }
+                            }*/
+                                #endregion
+
+                            }
+                            #endregion
+
+                    }
+                    catch (Exception)
+                    {
+
+                    }
+                    #endregion
+                }
+                else
+                //MENSAGENS ST940
+                if (mensagem[1] == "Location" || mensagem[1] == "Emergency" || (mensagem[1] == "RES" && mensagem[0].Contains("ST9")))
+                {
+                    #region Mensagem de Localização
+                    try
+                    {
+                        id = mensagem[1] == "RES" ? mensagem[3] : mensagem[2];
+                        var m = new Mensagens();
+                        var r = new Rastreador();
+                        r.PorId(id);
+
+                        if(mensagem[1] == "RES" && mensagem[1] == "PRESET"){
+
+                            //MENSAGEM DE COMANDO CONFIGURAÇÃO
+
+
+
+                        }else{
+
+                            //MENSAGEM DE POSIÇÃO
+
+                            m.Data_Rastreador = mensagem[4] + " " + mensagem[5];
+                            m.Data_Gps = mensagem[4].Substring(0, 4) + "-" + mensagem[4].Substring(4, 2) + "-" + mensagem[4].Substring(6, 2) + " " + mensagem[5];
+                            m.Data_Recebida = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
+                            m.ID_Rastreador = id;
+                            m.Mensagem = string.Join(";", mensagem);
+                            m.Ras_codigo = r.Codigo;
+                            m.Tipo_Mensagem = mensagem[1] == "Location" ? "STT" : "EMG";
+                            m.Latitude = mensagem[6];
+                            m.Longitude = mensagem[7];
+                            m.Velocidade = "0";
+                            //m.Velocidade = Convert.ToDecimal(mensagem[9].Replace('.', ',')).ToString("#0", CultureInfo.InvariantCulture).Replace('.', ',');
+                            m.Vei_codigo = r.Vei_codigo != 0 ? r.Vei_codigo : 0;
+                            m.Ignicao = true;
+                            //m.Ignicao = mensagem[15].Count() == 6 ? mensagem[15][0].Equals('0') ? false : true : mensagem[15][8].Equals('0') ? false : true;
+                            m.Hodometro = "0";
+                            //m.Hodometro = (Convert.ToInt32(mensagem[13]) / 1000.0).ToString("#0.0", CultureInfo.InvariantCulture).Replace(',', '.');
+                            m.Bloqueio = false;
+                            //m.Bloqueio = mensagem[15][4] == '1' ? true : false;
+                            m.Sirene = false;
+                            //m.Sirene = mensagem[15][5] == '1' ? true : false;
+                            m.Tensao = "0";
+                            //m.Tensao = mensagem[14];
+                            m.Horimetro = 0;
+                            m.CodAlerta = mensagem[1] == "Location" ? 0 : 3;
+                            m.Tipo_Alerta = m.CodAlerta == 0 ? "" : "Botão de Pânico Acionado";
+                            m.Endereco = Util.BuscarEndereco(m.Latitude, m.Longitude);
+
+                            #region Gravar
+                        if (m.Gravar())
+                        {
+                            m.Tipo_Mensagem = "EMG";
+                            if (r.veiculo != null)
+                            {
+                                //Verifica Area de Risco/Cerca
+                                Mensagens.EventoAreaCerca(m);
+
+                                //Evento Por E-mail
+                                var corpoEmail = m.Tipo_Alerta + "<br /> Endereço: " + m.Endereco;
+                                Mensagens.EventoPorEmail(m.Vei_codigo, m.CodAlerta, corpoEmail);
+                            }
+
+                            #region Tensão
+
+                            #endregion
+
+                            #region Velocidade
+                            /*if (r.Vei_codigo != 0)
+                            {
+                                var veiculo = Veiculo.BuscarVeiculoVelocidade(m.Vei_codigo);
+                                var velocidade_nova = Convert.ToDecimal(veiculo.vei_velocidade);
+                                if (velocidade_nova < Convert.ToDecimal(m.Velocidade) && velocidade_nova > 0)
+                                {
+                                    m.Tipo_Mensagem = "EVT";
+                                    m.Tipo_Alerta = "Veículo Ultrapassou a Velocidade";
+                                    m.CodAlerta = 23;
+                                    m.GravarEvento();
+
+                                    //Evento Por E-mail
+                                    var corpoEmail = m.Tipo_Alerta + "<br /> Velocidade: " + m.Velocidade + "<br /> Endereço: " + m.Endereco;
+                                    Mensagens.EventoPorEmail(m.Vei_codigo, m.CodAlerta, corpoEmail);
+                                }
+                            }*/
+                            #endregion
+
+                        }
+                        #endregion
+
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        //LogException.GravarException("Erro: " + ex.Message.ToString() + " - Mensagem: " + (ex.InnerException != null ? ex.InnerException.ToString() : " Valor nulo na mensagem "), 12, "Escuta Suntech Novo - Método " + System.Reflection.MethodBase.GetCurrentMethod().Name);
+                        /*StreamWriter txt = new StreamWriter("erros_01.txt", true);
+                        txt.WriteLine("ERRO: " + e.Message.ToString());
+                        txt.Close();*/
+                    }
+                    #endregion
+                }
+                else if (mensagem[0].Contains("STT")) //mensagem proveniente de um STATUS mensagem
                 {
                     #region Mensagem de Status
                     try
@@ -198,6 +392,7 @@ namespace Monitoramento
                         if (m.Gravar())
                         {
                             m.Tipo_Mensagem = "EMG";
+
                             if (r.veiculo != null)
                             {
                                 //Verifica Area de Risco/Cerca
@@ -209,6 +404,81 @@ namespace Monitoramento
                             }
 
                             #region Tensão
+
+                            string voltagem = r.veiculo.voltagem.ToString().Replace(",00", "");
+                            voltagem = voltagem.Length == 3 ? "0" + voltagem : voltagem;
+                            string voltagem_correta = voltagem.Substring(0, 2) + "." + voltagem.Substring(2, 2);
+
+                            /*string total = (Convert.ToDecimal(voltagem_correta) + 2).ToString();
+
+                            StreamWriter txt = new StreamWriter("tensao.txt", true);
+                            txt.WriteLine("Tensão: " + total);
+                            txt.Close();*/
+
+                            //var tet = r.rastreador_evento.Where(x => x.te_codigo.Equals(26)).ToList().ForEach(x => { x.te_codigo });
+
+
+                            /*var a = r.rastreador_evento.Select(tet => tet.te_codigo = 26);
+
+
+                            Console.WriteLine("----------------------------");
+                            Console.WriteLine(a.ToString());
+                            Console.WriteLine("----------------------------");
+
+                            var gravar_evento = true;
+                            r.rastreador_evento.ForEach(x => { 
+                                if(x.te_codigo == 26){
+                                    gravar_evento = false;
+                                }
+                            });
+
+                            if (gravar_evento)
+                            {*/
+                                if ((Convert.ToDecimal(voltagem_correta) + 200) < Convert.ToDecimal(m.Tensao))
+                                {
+                                    m.Tipo_Mensagem = "EVT";
+                                    m.Tipo_Alerta = "Tensão Acima do Ideal";
+                                    m.CodAlerta = 26;
+                                    m.GravarEvento();
+                                }
+                            //}
+
+                            /*StreamWriter txt = new StreamWriter("teste_bloqueio_evento.txt", true);
+                            txt.WriteLine(tet);
+                            txt.Close();*/
+
+                            /*if (!r.rastreador_evento.Where(x => x.te_codigo.Equals(26)))
+                            {*/
+                                if ((Convert.ToDecimal(voltagem_correta) + 200) < Convert.ToDecimal(m.Tensao))
+                                {
+                                    m.Tipo_Mensagem = "EVT";
+                                    m.Tipo_Alerta = "Tensão Acima do Ideal";
+                                    m.CodAlerta = 26;
+                                    m.GravarEvento();
+                                }
+                           /*}
+
+                            if (!r.rastreador_evento.Where(x => x.te_codigo.Equals(25)))
+                            {
+                                StreamWriter txt = new StreamWriter("teste_bloqueio_evento.txt", true);
+                                txt.WriteLine("NICE");
+                                txt.Close();
+                            */
+                                if ((Convert.ToDecimal(voltagem_correta) - 200) > Convert.ToDecimal(m.Tensao))
+                                {
+                                    m.Tipo_Mensagem = "EVT";
+                                    m.Tipo_Alerta = "Tensão Abaixo do Ideal";
+                                    m.CodAlerta = 25;
+                                    m.GravarEvento();
+                                }
+                            /*}
+                            else
+                            {
+                                StreamWriter txt = new StreamWriter("teste_bloqueio_evento.txt", true);
+                                txt.WriteLine("NOT_NICE");
+                                txt.Close();
+                            }*/
+
 
                             #endregion
 
@@ -234,12 +504,12 @@ namespace Monitoramento
                         }
                         #endregion
                     }
-                    catch (Exception ex)
+                    catch (Exception e)
                     {
                         //LogException.GravarException("Erro: " + ex.Message.ToString() + " - Mensagem: " + (ex.InnerException != null ? ex.InnerException.ToString() : " Valor nulo na mensagem "), 12, "Escuta Suntech Novo - Método " + System.Reflection.MethodBase.GetCurrentMethod().Name);
-                        /*StreamWriter txt = new StreamWriter("erros_01.txt", true);
+                        StreamWriter txt = new StreamWriter("erros_01.txt", true);
                         txt.WriteLine("ERRO: " + e.Message.ToString());
-                        txt.Close();*/
+                        txt.Close();
                     }
                     #endregion
                 }
@@ -301,7 +571,7 @@ namespace Monitoramento
                         var corpoEmail = m.Tipo_Alerta + "<br /> Endereço: " + m.Endereco;
                         Mensagens.EventoPorEmail(m.Vei_codigo, m.CodAlerta, corpoEmail);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         //LogException.GravarException("Erro: " + ex.Message.ToString() + " - Mensagem: " + (ex.InnerException != null ? ex.InnerException.ToString() : " Valor nulo na mensagem "), 12, "Escuta Suntech Novo - Método " + System.Reflection.MethodBase.GetCurrentMethod().Name);
                         /*StreamWriter txt = new StreamWriter("erros_02.txt", true);
@@ -404,7 +674,7 @@ namespace Monitoramento
                             var corpoEmail = m.Tipo_Alerta + "<br /> Endereço: " + m.Endereco;
                             Mensagens.EventoPorEmail(m.Vei_codigo, m.CodAlerta, corpoEmail);
                         }
-                        catch (Exception ex)
+                        catch (Exception)
                         {
                             //LogException.GravarException("Erro: " + ex.Message.ToString() + " - Mensagem: " + (ex.InnerException != null ? ex.InnerException.ToString() : " Valor nulo na mensagem "), 12, "Escuta Suntech Novo - Método " + System.Reflection.MethodBase.GetCurrentMethod().Name);
                             /*StreamWriter txt = new StreamWriter("erros_03_1.txt", true);
@@ -430,7 +700,7 @@ namespace Monitoramento
 
                             m.GravarCMD();
                         }
-                        catch (Exception ex)
+                        catch (Exception)
                         {
                             //LogException.GravarException("Erro: " + ex.Message.ToString() + " - Mensagem: " + (ex.InnerException != null ? ex.InnerException.ToString() : " Valor nulo na mensagem "), 12, "Escuta Suntech Novo - Método " + System.Reflection.MethodBase.GetCurrentMethod().Name);
                             /*
@@ -516,7 +786,7 @@ namespace Monitoramento
                         var corpoEmail = m.Tipo_Alerta + "<br /> Endereço: " + m.Endereco;
                         Mensagens.EventoPorEmail(m.Vei_codigo, m.CodAlerta, corpoEmail);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         //LogException.GravarException("Erro: " + ex.Message.ToString() + " - Mensagem: " + (ex.InnerException != null ? ex.InnerException.ToString() : " Valor nulo na mensagem "), 12, "Escuta Suntech Novo - Método " + System.Reflection.MethodBase.GetCurrentMethod().Name);
                         /*StreamWriter txt = new StreamWriter("erros_04.txt", true);
@@ -542,7 +812,7 @@ namespace Monitoramento
                         m.GravarCMD();
 
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         //LogException.GravarException("Erro: " + ex.Message.ToString() + " - Mensagem: " + (ex.InnerException != null ? ex.InnerException.ToString() : " Valor nulo na mensagem "), 1, "Escuta Suntech Novo - Método " + System.Reflection.MethodBase.GetCurrentMethod().Name);
                         //nada
@@ -553,7 +823,7 @@ namespace Monitoramento
                     #endregion
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 //LogException.GravarException("Erro: " + ex.Message.ToString() + " - Mensagem: " + (ex.InnerException != null ? ex.InnerException.ToString() : " Valor nulo na mensagem "), 12, "Escuta Suntech Novo - Método " + System.Reflection.MethodBase.GetCurrentMethod().Name);
                 //nada
