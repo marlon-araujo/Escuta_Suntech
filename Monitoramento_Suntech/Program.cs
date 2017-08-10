@@ -30,7 +30,7 @@ namespace Monitoramento
             //socket - 7012 - SUNTECH ST03
             //socket - 7013 - SUNTECH ST04
             //socket - 7014 - SUNTECH ST05
-            socket = new TcpListener(IPAddress.Any, 7013);
+            socket = new TcpListener(IPAddress.Any, 7005);
             try
             {
                 Console.WriteLine("Conectado !");
@@ -408,6 +408,7 @@ namespace Monitoramento
                             string voltagem = r.veiculo.voltagem.ToString().Replace(",00", "");
                             voltagem = voltagem.Length == 3 ? "0" + voltagem : voltagem;
                             string voltagem_correta = voltagem.Substring(0, 2) + "." + voltagem.Substring(2, 2);
+                            decimal voltagem_cadastro = Convert.ToDecimal(voltagem_correta);
 
                             /*string total = (Convert.ToDecimal(voltagem_correta) + 2).ToString();
 
@@ -434,13 +435,13 @@ namespace Monitoramento
 
                             if (gravar_evento)
                             {*/
-                                if ((Convert.ToDecimal(voltagem_correta) + 200) < Convert.ToDecimal(m.Tensao))
+                                /*if ((Convert.ToDecimal(voltagem_correta) + 200) < Convert.ToDecimal(m.Tensao))
                                 {
                                     m.Tipo_Mensagem = "EVT";
                                     m.Tipo_Alerta = "Tensão Acima do Ideal";
                                     m.CodAlerta = 26;
                                     m.GravarEvento();
-                                }
+                                }*/
                             //}
 
                             /*StreamWriter txt = new StreamWriter("teste_bloqueio_evento.txt", true);
@@ -449,13 +450,17 @@ namespace Monitoramento
 
                             /*if (!r.rastreador_evento.Where(x => x.te_codigo.Equals(26)))
                             {*/
-                                if ((Convert.ToDecimal(voltagem_correta) + 200) < Convert.ToDecimal(m.Tensao))
-                                {
-                                    m.Tipo_Mensagem = "EVT";
-                                    m.Tipo_Alerta = "Tensão Acima do Ideal";
-                                    m.CodAlerta = 26;
-                                    m.GravarEvento();
-                                }
+
+                            decimal porcentagem_alta = voltagem_cadastro + (voltagem_cadastro * Convert.ToDecimal(0.25));
+                            decimal porcentagem_baixa = voltagem_cadastro - (voltagem_cadastro * Convert.ToDecimal(0.20)); ;
+
+                            if (porcentagem_alta < Convert.ToDecimal(m.Tensao))
+                            {
+                                m.Tipo_Mensagem = "EVT";
+                                m.Tipo_Alerta = "Tensão Acima do Ideal";
+                                m.CodAlerta = 26;
+                                m.GravarEvento();
+                            }
                            /*}
 
                             if (!r.rastreador_evento.Where(x => x.te_codigo.Equals(25)))
@@ -464,13 +469,13 @@ namespace Monitoramento
                                 txt.WriteLine("NICE");
                                 txt.Close();
                             */
-                                if ((Convert.ToDecimal(voltagem_correta) - 200) > Convert.ToDecimal(m.Tensao))
-                                {
-                                    m.Tipo_Mensagem = "EVT";
-                                    m.Tipo_Alerta = "Tensão Abaixo do Ideal";
-                                    m.CodAlerta = 25;
-                                    m.GravarEvento();
-                                }
+                            if (porcentagem_baixa > Convert.ToDecimal(m.Tensao))
+                            {
+                                m.Tipo_Mensagem = "EVT";
+                                m.Tipo_Alerta = "Tensão Abaixo do Ideal";
+                                m.CodAlerta = 25;
+                                m.GravarEvento();
+                            }
                             /*}
                             else
                             {
