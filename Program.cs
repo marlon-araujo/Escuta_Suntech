@@ -11,6 +11,8 @@ using Projeto_Classes.Classes;
 using Projeto_Classes.Classes.Gerencial;
 using System.Globalization;
 using System.Data;
+using System.Collections;
+using System.Xml;
 
 
 namespace Monitoramento
@@ -18,10 +20,31 @@ namespace Monitoramento
     class Program
     {
         private static SortedDictionary<string, TcpClient> socket_rastreadores = new SortedDictionary<string, TcpClient>();
-
+        private static ArrayList contas = new ArrayList();
+        
         private static void Main()
         {
-            TcpListener socket;
+
+            #region Contas HERE
+
+            XmlDocument xDoc = new XmlDocument();
+            xDoc.Load("http://rastrear.a3rastreadores.com.br/contas_here/contas_here.xml");
+
+            XmlNodeList coluna = xDoc.GetElementsByTagName("coluna");
+            XmlNodeList app_id = xDoc.GetElementsByTagName("app_id");
+            XmlNodeList app_code = xDoc.GetElementsByTagName("app_code");
+
+            for (int i = 0; i < coluna.Count; i++)
+            {
+                ArrayList itens = new ArrayList();
+                itens.Add(coluna[i].InnerText);
+                itens.Add(app_id[i].InnerText);
+                itens.Add(app_code[i].InnerText);
+                contas.Add(itens);
+            }
+
+            #endregion
+
             //socket - 7002 - SUNTECH
             //socket - 7005 - SUNTECH ST340/ST350
             //socket - 7007 - SUNTECH ST200
@@ -30,11 +53,12 @@ namespace Monitoramento
             //socket - 7012 - SUNTECH ST03
             //socket - 7013 - SUNTECH ST04
             //socket - 7014 - SUNTECH ST05
-            socket = new TcpListener(IPAddress.Any, 7005);
+            TcpListener socket = new TcpListener(IPAddress.Any, 7013);
             try
             {
                 Console.WriteLine("Conectado !");
                 socket.Start();
+                
                 while (true)
                 {
                     TcpClient client = socket.AcceptTcpClient();
@@ -46,8 +70,7 @@ namespace Monitoramento
             }
             catch (Exception ex)
             {
-                //LogException.GravarException("Erro: " + ex.Message.ToString() + " - Mensagem: " + (ex.InnerException != null ? ex.InnerException.ToString() : " Valor nulo na mensagem "), 12, "Escuta Suntech Novo - Método " + System.Reflection.MethodBase.GetCurrentMethod().Name);
-                Console.WriteLine("Erro Conexão: -----" + ex.Message);
+                Console.WriteLine("Exception: {0}", ex);
             }
             finally
             {
@@ -194,10 +217,10 @@ namespace Monitoramento
                             m.Velocidade = "0";
                             //m.Velocidade = Convert.ToDecimal(mensagem[9].Replace('.', ',')).ToString("#0", CultureInfo.InvariantCulture).Replace('.', ',');
                             m.Vei_codigo = r.Vei_codigo != 0 ? r.Vei_codigo : 0;
-                            m.Ignicao = true;
-                            //m.Ignicao = mensagem[15].Count() == 6 ? mensagem[15][0].Equals('0') ? false : true : mensagem[15][8].Equals('0') ? false : true;
-                            m.Hodometro = "0";
-                            //m.Hodometro = (Convert.ToInt32(mensagem[13]) / 1000.0).ToString("#0.0", CultureInfo.InvariantCulture).Replace(',', '.');
+                            //m.Ignicao = true;
+                            m.Ignicao = Convert.ToInt32(mensagem[13]) == 1 ? true : false;
+                            //m.Hodometro = "0";
+                            m.Hodometro = (Convert.ToInt32(mensagem[16]) / 1000.0).ToString("#0.0", CultureInfo.InvariantCulture).Replace(',', '.');
                             m.Bloqueio = false;
                             //m.Bloqueio = mensagem[15][4] == '1' ? true : false;
                             m.Sirene = false;
@@ -207,7 +230,7 @@ namespace Monitoramento
                             m.Horimetro = 0;
                             m.CodAlerta = 0;
                             m.Tipo_Alerta = m.CodAlerta == 0 ? "" : "";
-                            m.Endereco = "";// Util.BuscarEndereco(m.Latitude, m.Longitude);
+                            m.Endereco = "";// Util.BuscarEndereco(m.Latitude, m.Longitude, contas);
 
                             #region Gravar
                             if (m.Gravar())
@@ -303,7 +326,7 @@ namespace Monitoramento
                             m.Horimetro = 0;
                             m.CodAlerta = mensagem[1] == "Location" ? 0 : 3;
                             m.Tipo_Alerta = m.CodAlerta == 0 ? "" : "Botão de Pânico Acionado";
-                            m.Endereco = Util.BuscarEndereco(m.Latitude, m.Longitude);
+                            m.Endereco = Util.BuscarEndereco(m.Latitude, m.Longitude, contas);
 
                             #region Gravar
                         if (m.Gravar())
@@ -386,7 +409,7 @@ namespace Monitoramento
                         m.Tensao = mensagem[14];
                         m.Horimetro = 0;
                         m.CodAlerta = 0;
-                        m.Endereco = Util.BuscarEndereco(m.Latitude, m.Longitude);
+                        m.Endereco = Util.BuscarEndereco(m.Latitude, m.Longitude, contas);
 
                         #region Gravar
                         if (m.Gravar())
@@ -405,11 +428,11 @@ namespace Monitoramento
 
                             #region Tensão
 
-                            string voltagem = r.veiculo.voltagem.ToString().Replace(",00", "");
-                            voltagem = voltagem.Length == 3 ? "0" + voltagem : voltagem;
+                            /*string voltagem = r.veiculo.voltagem.ToString().Replace(",00", "");
+                            /*voltagem = voltagem.Length == 3 ? "0" + voltagem : voltagem;
                             string voltagem_correta = voltagem.Substring(0, 2) + "." + voltagem.Substring(2, 2);
                             decimal voltagem_cadastro = Convert.ToDecimal(voltagem_correta);
-
+                            */
                             /*string total = (Convert.ToDecimal(voltagem_correta) + 2).ToString();
 
                             StreamWriter txt = new StreamWriter("tensao.txt", true);
@@ -451,8 +474,8 @@ namespace Monitoramento
                             /*if (!r.rastreador_evento.Where(x => x.te_codigo.Equals(26)))
                             {*/
 
-                            decimal porcentagem_alta = voltagem_cadastro + (voltagem_cadastro * Convert.ToDecimal(0.25));
-                            decimal porcentagem_baixa = voltagem_cadastro - (voltagem_cadastro * Convert.ToDecimal(0.20)); ;
+                            /*decimal porcentagem_alta = voltagem_cadastro + (voltagem_cadastro * Convert.ToDecimal(0.25));
+                            /*decimal porcentagem_baixa = voltagem_cadastro - (voltagem_cadastro * Convert.ToDecimal(0.20)); ;
 
                             if (porcentagem_alta < Convert.ToDecimal(m.Tensao))
                             {
@@ -460,7 +483,7 @@ namespace Monitoramento
                                 m.Tipo_Alerta = "Tensão Acima do Ideal";
                                 m.CodAlerta = 26;
                                 m.GravarEvento();
-                            }
+                            }*/
                            /*}
 
                             if (!r.rastreador_evento.Where(x => x.te_codigo.Equals(25)))
@@ -469,13 +492,13 @@ namespace Monitoramento
                                 txt.WriteLine("NICE");
                                 txt.Close();
                             */
-                            if (porcentagem_baixa > Convert.ToDecimal(m.Tensao))
+                            /*if (porcentagem_baixa > Convert.ToDecimal(m.Tensao))
                             {
                                 m.Tipo_Mensagem = "EVT";
                                 m.Tipo_Alerta = "Tensão Abaixo do Ideal";
                                 m.CodAlerta = 25;
                                 m.GravarEvento();
-                            }
+                            }*/
                             /*}
                             else
                             {
@@ -546,7 +569,7 @@ namespace Monitoramento
                         m.Horimetro = 0;
                         m.Tipo_Alerta = "";
                         //m.Endereco = Mensagens.RequisitarEndereco(m.Latitude, m.Longitude);
-                        m.Endereco = Util.BuscarEndereco(m.Latitude, m.Longitude);
+                        m.Endereco = Util.BuscarEndereco(m.Latitude, m.Longitude, contas);
 
                         m.CodAlerta = 0;
 
@@ -615,7 +638,7 @@ namespace Monitoramento
                             m.Tensao = mensagem[14];
                             m.Horimetro = 0;
                             //m.Endereco = Mensagens.RequisitarEndereco(m.Latitude, m.Longitude);
-                            m.Endereco = Util.BuscarEndereco(m.Latitude, m.Longitude);
+                            m.Endereco = Util.BuscarEndereco(m.Latitude, m.Longitude, contas);
                             m.CodAlerta = 0;
                             m.Tipo_Alerta = "";
 
@@ -744,7 +767,7 @@ namespace Monitoramento
                         m.Horimetro = 0;
                         m.CodAlerta = 0;
                         m.Tipo_Alerta = "";
-                        m.Endereco = Util.BuscarEndereco(m.Latitude, m.Longitude);
+                        m.Endereco = Util.BuscarEndereco(m.Latitude, m.Longitude, contas);
 
                         #region Eventos
                         if (r.veiculo != null)
