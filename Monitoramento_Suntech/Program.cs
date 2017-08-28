@@ -33,6 +33,8 @@ namespace Monitoramento
             XmlNodeList coluna = xDoc.GetElementsByTagName("coluna");
             XmlNodeList app_id = xDoc.GetElementsByTagName("app_id");
             XmlNodeList app_code = xDoc.GetElementsByTagName("app_code");
+            XmlNodeList inicio = xDoc.GetElementsByTagName("inicio");
+            XmlNodeList fim = xDoc.GetElementsByTagName("fim");
 
             for (int i = 0; i < coluna.Count; i++)
             {
@@ -40,12 +42,14 @@ namespace Monitoramento
                 itens.Add(coluna[i].InnerText);
                 itens.Add(app_id[i].InnerText);
                 itens.Add(app_code[i].InnerText);
+                itens.Add(inicio[i].InnerText);
+                itens.Add(fim[i].InnerText);
                 contas.Add(itens);
             }
 
             #endregion
 
-            //socket - 7002 - SUNTECH
+            //socket - 7002 - SUNTECH ST00
             //socket - 7005 - SUNTECH ST340/ST350
             //socket - 7007 - SUNTECH ST200
             //socket - 7010 - SUNTECH ST01
@@ -53,7 +57,7 @@ namespace Monitoramento
             //socket - 7012 - SUNTECH ST03
             //socket - 7013 - SUNTECH ST04
             //socket - 7014 - SUNTECH ST05
-            TcpListener socket = new TcpListener(IPAddress.Any, 7013);
+            TcpListener socket = new TcpListener(IPAddress.Any, 7002);
             try
             {
                 Console.WriteLine("Conectado !");
