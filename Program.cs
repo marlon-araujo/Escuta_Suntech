@@ -57,7 +57,7 @@ namespace Monitoramento
             //socket - 7012 - SUNTECH ST03
             //socket - 7013 - SUNTECH ST04
             //socket - 7014 - SUNTECH ST05
-            TcpListener socket = new TcpListener(IPAddress.Any, 7002);
+            TcpListener socket = new TcpListener(IPAddress.Any, 7014);
             try
             {
                 Console.WriteLine("Conectado !");
