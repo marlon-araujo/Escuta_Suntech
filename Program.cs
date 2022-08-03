@@ -28,7 +28,7 @@ namespace Monitoramento
             #region Contas HERE
 
             XmlDocument xDoc = new XmlDocument();
-            xDoc.Load("http://rastrear.a3rastreadores.com.br/contas_here/contas_here.xml");
+            xDoc.Load("END_POINT");
 
             XmlNodeList coluna = xDoc.GetElementsByTagName("coluna");
             XmlNodeList app_id = xDoc.GetElementsByTagName("app_id");
@@ -49,14 +49,6 @@ namespace Monitoramento
 
             #endregion
 
-            //socket - 7002 - SUNTECH ST00
-            //socket - 7005 - SUNTECH ST340/ST350
-            //socket - 7007 - SUNTECH ST200
-            //socket - 7010 - SUNTECH ST01
-            //socket - 7011 - SUNTECH ST02
-            //socket - 7012 - SUNTECH ST03
-            //socket - 7013 - SUNTECH ST04
-            //socket - 7014 - SUNTECH ST05
             TcpListener socket = new TcpListener(IPAddress.Any, 7014);
             try
             {
